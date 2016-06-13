@@ -26,8 +26,7 @@ var Tilefy = (function () {
         this.makeGrids();
         this.mapTilesToGrid();
         this.drawTiles();
-        //this.setStyles();
-        //wakeUpLive();
+        this.wakeUpLive();
         //bindDragAndDrop();
         //enableTileResize();
     };
@@ -177,7 +176,6 @@ var Tilefy = (function () {
                 }
             }
         }
-        //console.log('No Grid Avaialble for Tile id=' + tile.id);
     };
     /*
     * This function will take a gridId and examine
@@ -287,56 +285,66 @@ var Tilefy = (function () {
         }
     };
     /*
-            * Once the DOM for tile is ready, this function will set the styles
-            */
-    Tilefy.prototype.setStyles = function () {
-        //set Tile Sizes
-        //$('.tile.small').css({
-        //    "width": small_tile_size,
-        //    "height": small_tile_size
-        //});
-        //let smallTiles = this.container.getElementsByClassName("tile small");
-        //for (let i = 0; i < smallTiles.length; i++) {
-        //    (<HTMLElement>smallTiles.item(i)).style.width = this.small_tile_size + 'px';
-        //    (<HTMLElement>smallTiles.item(i)).style.height = this.small_tile_size + 'px';
-        //}
-        //let mediumTiles = this.container.getElementsByClassName("tile medium");
-        //for (let i = 0; i < mediumTiles.length; i++) {
-        //    (<HTMLElement>mediumTiles.item(i)).style.width = this.medium_tile_size + 'px';
-        //    (<HTMLElement>mediumTiles.item(i)).style.height = this.medium_tile_size + 'px';
-        //}
-        //let bigTiles = this.container.getElementsByClassName("tile big");
-        //for (let i = 0; i < bigTiles.length; i++) {
-        //    (<HTMLElement>bigTiles.item(i)).style.width = this.big_tile_size + 'px';
-        //    (<HTMLElement>bigTiles.item(i)).style.height = this.big_tile_size + 'px';
-        //}
-        //let recTiles = this.container.getElementsByClassName("tile rectangle");
-        //for (let i = 0; i < recTiles.length; i++) {
-        //    (<HTMLElement>recTiles.item(i)).style.width = this.big_tile_size + 'px';
-        //    (<HTMLElement>recTiles.item(i)).style.height = this.medium_tile_size + 'px';
-        //}
-        //Set fontIcon sizes
-        //let fontTiles = this.container.getElementsByClassName("tile fontIcon");
-        //$('.tile.medium').css({
-        //    "width": medium_tile_size,
-        //    "height": medium_tile_size
-        //});
-        //$('.tile.big').css({
-        //    "width": big_tile_size,
-        //    "height": big_tile_size
-        //});
-        //$('.tile.rectangle').css({
-        //    "width": big_tile_size,
-        //    "height": medium_tile_size
-        //});
-        //Set fontIcon sizes
-        //$('.tile .fontIcon').each(function () {
-        //    var ht = $(this).closest('.tile').height();
-        //    $(this).css({
-        //        "font-size": (ht / 2) + 'px',
-        //        "margin-top": (ht / 8) + 'px'
-        //    });
-        //});
+    * Wake the live tiles up
+    */
+    Tilefy.prototype.wakeUpLive = function () {
+        var _this = this;
+        var animationClasses = ["slideInDown", "slideInLeft", "slideInRight", "slideInUp", "rotateIn", "rollIn", "zoomIn"];
+        var txtAnimations = ["fadeIn"];
+        var allTiles = this.container.querySelectorAll(".tile");
+        //let tileElement;
+        var _loop_1 = function(i) {
+            var tileElement = allTiles.item(i);
+            ///if it has a div with class 'live'
+            if (tileElement.querySelector('.live')) {
+                (function () {
+                    var tileId = tileElement.id;
+                    var liveImgUrls = _this.tiles[_this.tileLookupArr.indexOf(tileId)].liveImgUrls;
+                    var liveTxts = _this.tiles[_this.tileLookupArr.indexOf(tileId)].liveTxts;
+                    //live img
+                    if (liveImgUrls != undefined && liveImgUrls.length > 1) {
+                        var imgIndx = 0;
+                        var noOfImgs = liveImgUrls.length;
+                        var animateClass = '';
+                        var waitTime = 2500 + Math.round(Math.random() * (5000 / noOfImgs));
+                        function nxtImg() {
+                            if (!_this.tileMovementAllowed && !_this.tileResizeAllowed) {
+                                imgIndx = (imgIndx + 1) % noOfImgs;
+                                animateClass = animationClasses[Math.floor(Math.random() * animationClasses.length)];
+                                var fontImgEl = tileElement.querySelector('.fontImg');
+                                fontImgEl.src = liveImgUrls[imgIndx];
+                                fontImgEl.className = '';
+                                fontImgEl.className = 'fontImg animated ' + animateClass;
+                            }
+                            setTimeout(nxtImg, waitTime);
+                        }
+                        nxtImg();
+                    }
+                    //live txt
+                    if (liveTxts != undefined && liveTxts.length > 1) {
+                        var txtIndx = 0;
+                        var noOfTxts = liveTxts.length;
+                        var animateClass = '';
+                        var waitTime = 2500 + Math.round(Math.random() * (5000 / noOfTxts));
+                        function nxtTxt() {
+                            if (!_this.tileMovementAllowed && !_this.tileResizeAllowed) {
+                                txtIndx = (txtIndx + 1) % noOfTxts;
+                                animateClass = txtAnimations[Math.floor(Math.random() * txtAnimations.length)];
+                                var txtEl = tileElement.querySelector('.liveTxt');
+                                txtEl.textContent = liveTxts[txtIndx];
+                                txtEl.className = '';
+                                txtEl.className = 'liveTxt animated ' + animateClass;
+                            }
+                            setTimeout(nxtTxt, waitTime);
+                        }
+                        nxtTxt();
+                    }
+                })();
+            }
+        };
+        for (var i = 0; i < allTiles.length; i++) {
+            _loop_1(i);
+        }
     };
     return Tilefy;
 }());

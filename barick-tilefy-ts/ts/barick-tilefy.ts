@@ -34,8 +34,7 @@ class Tilefy {
         this.makeGrids();
         this.mapTilesToGrid();
         this.drawTiles();
-        //this.setStyles();
-        //wakeUpLive();
+        this.wakeUpLive();
         //bindDragAndDrop();
         //enableTileResize();
     }
@@ -124,7 +123,6 @@ class Tilefy {
                 gridY++;
             }
 
-
             //if any tile starts on it, then type=startGrid
             let grid: Grid = {} as Grid;         // = {};
             grid.indX = gridX;
@@ -203,8 +201,8 @@ class Tilefy {
                 }
             }
         }
-        //console.log('No Grid Avaialble for Tile id=' + tile.id);
     }
+
 
     /*
     * This function will take a gridId and examine
@@ -236,6 +234,7 @@ class Tilefy {
         return !innerLoopFailed;
     }
 
+
     /*
     * this function will mark all the grids occupied
     * by a medium or big tile
@@ -257,6 +256,7 @@ class Tilefy {
         }
     }
 
+
     /*
     * This function will make the Full HTML and put them in container on which tilefy was called
     */
@@ -271,11 +271,11 @@ class Tilefy {
             htm += `
                     <div id="${tile.id}" class="tile ${tile.size}" style="top: ${tile.top}px; left: ${tile.left}px; height: ${tile.height}px; width: ${tile.width}px;" data-gridid="${tile.gridId}">
                         <a class="tileInnerContainer" target="${tile.linkTarget || '_blank'}" href="${tile.link || 'javascript:void(0)'}" style="background: ${tile.bgColor};">
-                    `;           
+                    `;
 
-           
+
             if (tile.contentType == 'font') {
-                htm += `<span class="fontIcon ${tile.icon}" style="font-size: ${tile.height/2}px; margin-top: ${tile.height/8}px;"></span>`;
+                htm += `<span class="fontIcon ${tile.icon}" style="font-size: ${tile.height / 2}px; margin-top: ${tile.height / 8}px;"></span>`;
             }
             else if (tile.contentType == 'live') {
                 htm += '<div class="live">';
@@ -339,66 +339,85 @@ class Tilefy {
 
 
     /*
-            * Once the DOM for tile is ready, this function will set the styles
-            */
-    setStyles() {
-        //set Tile Sizes
-        //$('.tile.small').css({
-        //    "width": small_tile_size,
-        //    "height": small_tile_size
-        //});
+    * Wake the live tiles up
+    */
+    wakeUpLive() {
+        let _this = this;
+        let animationClasses = ["slideInDown", "slideInLeft", "slideInRight", "slideInUp", "rotateIn", "rollIn", "zoomIn"];
 
-        //let smallTiles = this.container.getElementsByClassName("tile small");
-        //for (let i = 0; i < smallTiles.length; i++) {
-        //    (<HTMLElement>smallTiles.item(i)).style.width = this.small_tile_size + 'px';
-        //    (<HTMLElement>smallTiles.item(i)).style.height = this.small_tile_size + 'px';
+        let txtAnimations = ["fadeIn"];
 
-        //}
+        let allTiles = this.container.querySelectorAll(".tile");
+        //let tileElement;
+        for (let i = 0; i < allTiles.length; i++) {
+            let tileElement = allTiles.item(i);
 
-        //let mediumTiles = this.container.getElementsByClassName("tile medium");
-        //for (let i = 0; i < mediumTiles.length; i++) {
-        //    (<HTMLElement>mediumTiles.item(i)).style.width = this.medium_tile_size + 'px';
-        //    (<HTMLElement>mediumTiles.item(i)).style.height = this.medium_tile_size + 'px';
-        //}
+            ///if it has a div with class 'live'
+            if (tileElement.querySelector('.live')) {
+                (function () {
+                    var tileId = tileElement.id;
+                    var liveImgUrls = _this.tiles[_this.tileLookupArr.indexOf(tileId)].liveImgUrls;
+                    var liveTxts = _this.tiles[_this.tileLookupArr.indexOf(tileId)].liveTxts;
 
-        //let bigTiles = this.container.getElementsByClassName("tile big");
-        //for (let i = 0; i < bigTiles.length; i++) {
-        //    (<HTMLElement>bigTiles.item(i)).style.width = this.big_tile_size + 'px';
-        //    (<HTMLElement>bigTiles.item(i)).style.height = this.big_tile_size + 'px';
-        //}
+                    //live img
+                    if (liveImgUrls != undefined && liveImgUrls.length > 1) {
+                        var imgIndx = 0;
+                        var noOfImgs = liveImgUrls.length;
+                        var animateClass = '';
+                        var waitTime = 2500 + Math.round(Math.random() * (5000 / noOfImgs));
 
-        //let recTiles = this.container.getElementsByClassName("tile rectangle");
-        //for (let i = 0; i < recTiles.length; i++) {
-        //    (<HTMLElement>recTiles.item(i)).style.width = this.big_tile_size + 'px';
-        //    (<HTMLElement>recTiles.item(i)).style.height = this.medium_tile_size + 'px';
-        //}
+                        function nxtImg() {
+                            if (!_this.tileMovementAllowed && !_this.tileResizeAllowed) {
+                                imgIndx = (imgIndx + 1) % noOfImgs;
+                                animateClass = animationClasses[Math.floor(Math.random() * animationClasses.length)];
 
-        //Set fontIcon sizes
-        //let fontTiles = this.container.getElementsByClassName("tile fontIcon");
+                                let fontImgEl = tileElement.querySelector('.fontImg') as HTMLImageElement;
+                                fontImgEl.src = liveImgUrls[imgIndx];
+                                fontImgEl.className = '';
+                                fontImgEl.className = 'fontImg animated ' + animateClass;
 
-        //$('.tile.medium').css({
-        //    "width": medium_tile_size,
-        //    "height": medium_tile_size
-        //});
+                                //$('#' + tileId).find('.fontImg').attr('src', liveImgUrls[imgIndx]).removeClass().addClass('fontImg animated ' + animateClass);
+                            }
+                            setTimeout(nxtImg, waitTime);
+                        }
 
-        //$('.tile.big').css({
-        //    "width": big_tile_size,
-        //    "height": big_tile_size
-        //});
+                        nxtImg();
+                    }
 
-        //$('.tile.rectangle').css({
-        //    "width": big_tile_size,
-        //    "height": medium_tile_size
-        //});
+                    //live txt
+                    if (liveTxts != undefined && liveTxts.length > 1) {
+                        var txtIndx = 0;
+                        var noOfTxts = liveTxts.length;
+                        var animateClass = '';
+                        var waitTime = 2500 + Math.round(Math.random() * (5000 / noOfTxts));
 
-        //Set fontIcon sizes
-        //$('.tile .fontIcon').each(function () {
-        //    var ht = $(this).closest('.tile').height();
+                        function nxtTxt() {
+                            if (!_this.tileMovementAllowed && !_this.tileResizeAllowed) {
+                                txtIndx = (txtIndx + 1) % noOfTxts;
+                                animateClass = txtAnimations[Math.floor(Math.random() * txtAnimations.length)];
 
-        //    $(this).css({
-        //        "font-size": (ht / 2) + 'px',
-        //        "margin-top": (ht / 8) + 'px'
-        //    });
-        //});
+                                let txtEl = tileElement.querySelector('.liveTxt');
+                                txtEl.textContent = liveTxts[txtIndx];
+                                txtEl.className = '';
+                                txtEl.className = 'liveTxt animated ' + animateClass;
+                            }
+                            setTimeout(nxtTxt, waitTime);
+                        }
+
+                        nxtTxt();
+                    }
+
+                })();
+
+            }
+        }
+        
+
+
+
+
+
+        
     }
+
 } 
