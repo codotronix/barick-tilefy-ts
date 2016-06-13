@@ -1,0 +1,6 @@
+E:\Bor er Ektu Jayga\VS Projects\barick-tilefy-ts\barick-tilefy-ts\bin\barick-tilefy-ts.dll.config
+E:\Bor er Ektu Jayga\VS Projects\barick-tilefy-ts\barick-tilefy-ts\bin\barick-tilefy-ts.dll
+E:\Bor er Ektu Jayga\VS Projects\barick-tilefy-ts\barick-tilefy-ts\bin\barick-tilefy-ts.pdb
+E:\Bor er Ektu Jayga\VS Projects\barick-tilefy-ts\barick-tilefy-ts\obj\Debug\barick-tilefy-ts.csprojResolveAssemblyReference.cache
+E:\Bor er Ektu Jayga\VS Projects\barick-tilefy-ts\barick-tilefy-ts\obj\Debug\barick-tilefy-ts.dll
+E:\Bor er Ektu Jayga\VS Projects\barick-tilefy-ts\barick-tilefy-ts\obj\Debug\barick-tilefy-ts.pdb
