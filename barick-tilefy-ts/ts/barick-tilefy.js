@@ -27,7 +27,7 @@ var Tilefy = (function () {
         this.mapTilesToGrid();
         this.drawTiles();
         this.wakeUpLive();
-        //bindDragAndDrop();
+        this.bindDragAndDrop();
         //enableTileResize();
     };
     /*
@@ -346,6 +346,85 @@ var Tilefy = (function () {
             _loop_1(i);
         }
     };
+    /*
+    * Inside this function all the things related to tile movement will be done
+    * Since lots of binding to tiles will be here, if we delegate the binding
+    * thru body, this function only needs to be called once, i.e. in init
+    */
+    Tilefy.prototype.bindDragAndDrop = function () {
+        var _this = this;
+        var tile_Being_Dragged_ID = null;
+        var tile_to_be_shifted_ID = null;
+        var drag_in_progress = false;
+        var iniMX = 0, iniMY = 0; //initial mouseX and mouseY when drag Starts
+        var __this = this;
+        //whenever a tile recieves a mousedown, assume dragging start
+        BarickUtil.dynamicClassBind('pointerdown', this.container, 'tile', function (ev, elem) {
+            //console.log(elem);
+            //if (!container.hasClass('movementMode')) { return; }
+            if (BarickUtil.hasClass(_this.container, 'movementMode')) {
+                return;
+            }
+            ev.preventDefault();
+            if (drag_in_progress) {
+                return;
+            }
+            tile_Being_Dragged_ID = elem.id;
+            drag_in_progress = true;
+            iniMX = ev.pageX;
+            iniMY = ev.pageY;
+            BarickUtil.removeClass(_this.container.querySelectorAll('.tile'), 'being-dragged');
+            elem.className += " being-dragged";
+        });
+        //whenever body recieves a mouseup, assume dragging end
+        document.addEventListener('pointerup', function () {
+        });
+    };
     return Tilefy;
+}());
+var BarickUtil = (function () {
+    function BarickUtil() {
+    }
+    /*
+    * Custom implementation of jquery's .on dynamic event binding
+    */
+    BarickUtil.dynamicClassBind = function (eventType, parentEl, selectorClass, callback) {
+        parentEl.addEventListener(eventType, function (ev) {
+            var el = ev.target;
+            while (el != parentEl) {
+                if (BarickUtil.hasClass(el, selectorClass)) {
+                    callback(ev, el);
+                    return;
+                }
+                else {
+                    el = el.parentElement;
+                }
+            }
+        });
+    };
+    /*
+    * custom Implementation of jQuery's hasClass method
+    */
+    BarickUtil.hasClass = function (elem, className) {
+        var classes = elem.className.split(' ');
+        return (classes.indexOf(className) > -1);
+    };
+    /*
+    * custom Implementation of jQuery's addClass method
+    */
+    BarickUtil.removeClass = function (elemArr, className) {
+        for (var j in elemArr) {
+            var elem = elemArr[j];
+            var classes = elem.className.split(' ');
+            var newClassName = '';
+            for (var i in classes) {
+                if (classes[i] != className) {
+                    newClassName += classes[i];
+                }
+            }
+            elem.className = newClassName;
+        }
+    };
+    return BarickUtil;
 }());
 //# sourceMappingURL=barick-tilefy.js.map

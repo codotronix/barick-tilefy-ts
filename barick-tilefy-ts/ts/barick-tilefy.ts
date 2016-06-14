@@ -35,7 +35,7 @@ class Tilefy {
         this.mapTilesToGrid();
         this.drawTiles();
         this.wakeUpLive();
-        //bindDragAndDrop();
+        this.bindDragAndDrop();
         //enableTileResize();
     }
 
@@ -411,13 +411,216 @@ class Tilefy {
 
             }
         }
-        
-
-
-
-
-
-        
     }
 
-} 
+
+    /*
+    * Inside this function all the things related to tile movement will be done
+    * Since lots of binding to tiles will be here, if we delegate the binding 
+    * thru body, this function only needs to be called once, i.e. in init
+    */
+    bindDragAndDrop() {
+        var tile_Being_Dragged_ID = null;
+        var tile_to_be_shifted_ID = null;
+        var drag_in_progress = false;
+        var iniMX = 0, iniMY = 0; //initial mouseX and mouseY when drag Starts
+        var __this = this;
+
+        //whenever a tile recieves a mousedown, assume dragging start
+        BarickUtil.dynamicClassBind('pointerdown', this.container, 'tile', (ev: PointerEvent, elem: HTMLElement) => {
+            //console.log(elem);
+            //if (!container.hasClass('movementMode')) { return; }
+            if (BarickUtil.hasClass(this.container, 'movementMode')) { return; }
+            ev.preventDefault();
+            if (drag_in_progress) { return; }
+            tile_Being_Dragged_ID = elem.id;
+            drag_in_progress = true;
+            iniMX = ev.pageX;
+            iniMY = ev.pageY;
+            BarickUtil.removeClass(this.container.querySelectorAll('.tile'), 'being-dragged');
+            elem.className += " being-dragged";
+        });
+
+
+        //whenever body recieves a mouseup, assume dragging end
+        document.addEventListener('pointerup', () => {
+            if (!drag_in_progress) { return; }
+            drag_in_progress = false;
+            BarickUtil.triggerNative('click', document.getElementsByTagName('body')[0]);
+
+            //bring the tile_Being_Dragged_ID before tile_to_be_shifted_ID in tileOrder
+            if (tile_to_be_shifted_ID != null && tile_Being_Dragged_ID != null) {
+                var newTileOrder = [];
+                for (let i in this.tileOrder) {
+                    if (this.tileOrder[i] == tile_Being_Dragged_ID) {
+                        continue;
+                    }
+                    else if (this.tileOrder[i] == tile_to_be_shifted_ID) {
+                        newTileOrder.push(tile_Being_Dragged_ID);
+                        newTileOrder.push(tile_to_be_shifted_ID);
+                    } else {
+                        newTileOrder.push(this.tileOrder[i]);
+                    }
+                }
+
+                //sometimes false triggering causes data loss
+                if (newTileOrder.length != this.tileOrder.length) {
+                    console.log("length mismatch... Hence this order cannot be taken...");
+                    console.log('current tile order'); console.log(tileOrder);
+                    console.log('new tile order'); console.log(newTileOrder);
+                    //debugger;
+
+                } else {
+                    this.tileOrder = newTileOrder;
+                }
+            }
+
+            reTilefy();
+
+            tile_Being_Dragged_ID = null;
+            tile_to_be_shifted_ID = null;
+            BarickUtil.removeClass(this.container.querySelectorAll('.tile'), 'being-dragged');
+        });
+
+
+        //if the pointer goes out of current tile container, trigger a pointerup
+        this.container.addEventListener('pointerout', (ev) => {
+            BarickUtil.triggerNative('pointerup', document.getElementsByTagName('body')[0]);
+        });
+
+
+        //while dragging the tile should move with mouse
+        document.addEventListener('pointermove', (ev) => {
+            ev.stopPropagation();
+            if (!this.tileMovementAllowed || !drag_in_progress || tile_Being_Dragged_ID == null) {
+                return;
+            }
+
+            //get mouse pointer displacement
+            var diffX = ev.pageX - iniMX;
+            var diffY = ev.pageY - iniMY;
+            iniMX = ev.pageX;
+            iniMY = ev.pageY;
+
+            var tile_Being_Dragged = document.getElementById(tile_Being_Dragged_ID);
+            var tileLeft = parseInt(tile_Being_Dragged.style.left);
+            var tileTop = parseInt(tile_Being_Dragged.style.top);
+            var newTop = tileTop + diffY;
+            var newLeft = tileLeft + diffX;
+
+            for (var i in this.tiles) {
+                if (tile_Being_Dragged_ID != this.tiles[i].id && Math.abs(this.tiles[i].left - tileLeft) < this.small_tile_size && Math.abs(this.tiles[i].top - tileTop) < this.small_tile_size) {
+                    //console.log(tiles[i].id + " can be moved...");
+                    BarickUtil.removeClass(this.container.querySelectorAll('.tile'), 'shift-effect');
+                    tile_to_be_shifted_ID = this.tiles[i].id;
+                    document.getElementById(tile_to_be_shifted_ID).className += " shift-effect";
+                    break;
+                }
+            }
+
+            //apply the new top and left
+            tile_Being_Dragged.style.top = newTop + 'px';
+            tile_Being_Dragged.style.left = newLeft + 'px';
+        });
+
+        //bind the btn_ID_to_Toggle_Tile_Movement Button
+        document.getElementById(this.config.btn_ID_to_Toggle_Tile_Movement).addEventListener('click', () => {
+            checkTileDNDPermission();
+        });
+
+
+        //first tie it doesnot have any of the classes off/on, so it will set to off
+        function checkTileDNDPermission() {
+            //Throw Not Yet Implemented Error
+            throw DOMException.NOT_SUPPORTED_ERR;
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+    //bindEvent(eventType, elementQuerySelector, cb) {
+    //    var _this = this;
+    //    this.container.addEventListener(eventType, function (event) {
+
+    //        var qs = _this.container.querySelectorAll(elementQuerySelector);
+
+    //        if (qs) {
+    //            var el = event.target as HTMLElement, index = -1;
+    //            while (el && ((index = Array.prototype.indexOf.call(qs, el)) === -1)) {
+    //                el = el.parentElement;
+    //            }
+
+    //            if (index > -1) {
+    //                cb.call(el, event);
+    //            }
+    //        }
+    //    });
+    //}
+
+}
+
+
+class BarickUtil {
+
+    /*
+    * Custom implementation of jquery's .on dynamic event binding
+    */
+    public static dynamicClassBind(eventType: string, parentEl: HTMLElement, selectorClass: string, callback) {
+        parentEl.addEventListener(eventType, function (ev) {
+            let el = ev.target as HTMLElement;
+            while (el != parentEl) {
+                if (BarickUtil.hasClass(el, selectorClass)) {
+                    callback(ev, el);
+                    return;
+                } else {
+                    el = el.parentElement;
+                }
+            }
+        })
+    }
+
+
+    /*
+    * custom Implementation of jQuery's hasClass method
+    */
+    public static hasClass(elem: HTMLElement, className: string): boolean {
+        let classes: string[] = elem.className.split(' ');
+        return (classes.indexOf(className) > -1);
+    }
+
+
+    /*
+    * custom Implementation of jQuery's addClass method
+    */
+    public static removeClass(elemArr: NodeListOf<Element>, className: string) {
+        for (let j in elemArr) {
+            let elem = elemArr[j];
+            let classes: string[] = elem.className.split(' ');
+            let newClassName: string = '';
+            for (let i in classes) {
+                if (classes[i] != className) {
+                    newClassName += classes[i];
+                }
+            }
+            elem.className = newClassName;
+        }
+    }
+
+
+    /*
+    * Native Event Trigger
+    */
+    public static triggerNative(evName: string, el: Element) {
+        var event = document.createEvent('HTMLEvents');
+        event.initEvent(evName, true, false);
+        el.dispatchEvent(event);
+    }
+
+}
