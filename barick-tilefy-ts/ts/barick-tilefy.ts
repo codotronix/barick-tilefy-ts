@@ -1,4 +1,4 @@
-﻿"use strict"
+"use strict"
 class Tilefy {
     container: HTMLElement;
     containerWidth: number;
@@ -37,6 +37,12 @@ class Tilefy {
         this.wakeUpLive();
         this.bindDragAndDrop();
         //enableTileResize();
+    }
+	
+	reTilefy () {
+        this.resetGrids();
+        this.mapTilesToGrid();
+        this.drawTiles();
     }
 
 
@@ -135,9 +141,18 @@ class Tilefy {
 
             this.grids[grid.id] = grid;
         }
-
     }
 
+
+	/*
+    * This function will reset the Grids
+    */
+    resetGrids () {
+        for(var key in this.grids) {
+            this.grids[key].occupiedBy = "none";
+            this.grids[key].type = '';
+        }
+    }
 
     /*
     * this function will loop thru tiles, send each tile to placeTileOnGrid(tile) 
@@ -475,7 +490,7 @@ class Tilefy {
                 }
             }
 
-            reTilefy();
+            this.reTilefy();
 
             tile_Being_Dragged_ID = null;
             tile_to_be_shifted_ID = null;
@@ -529,10 +544,39 @@ class Tilefy {
         });
 
 
-        //first tie it doesnot have any of the classes off/on, so it will set to off
+        //first tile it doesnot have any of the classes off/on, so it will set to off
         function checkTileDNDPermission() {
             //Throw Not Yet Implemented Error
-            throw DOMException.NOT_SUPPORTED_ERR;
+            //throw DOMException.NOT_SUPPORTED_ERR;
+			//$('.tileResizeMenu').remove();
+			let tileResizeMenu = document.querySelector('.tileResizeMenu');
+			tileResizeMenu.parentElement.removeChild(tileResizeMenu);
+			
+			let btn_Toggle_Tile_Movement = document.getElementById(__this.config.btn_ID_to_Toggle_Tile_Movement);
+			
+			if(!BarickUtil.hasClass(btn_Toggle_Tile_Movement, 'on')) {
+				
+				
+				BarickUtil.removeClass((new Array).push(btn_Toggle_Tile_Movement), 'off');
+				btn_Toggle_Tile_Movement.className += " on";
+				
+			}
+			
+			
+			if(!$('#'+config.btn_ID_to_Toggle_Tile_Movement).hasClass('on')) {
+				$('#'+config.btn_ID_to_Toggle_Tile_Movement).removeClass('off').addClass('on');
+				tileMovementAllowed = true;
+				container.addClass('movementMode').removeClass('resizeMode');
+				//tile resize and movement are mutually exclusive
+				tileResizeAllowed = false;
+				$('#'+config.btn_ID_to_Toggle_Tile_Resize).removeClass('on').addClass('off');
+			} else {
+				$('#'+config.btn_ID_to_Toggle_Tile_Movement).removeClass('on').addClass('off');
+				tileMovementAllowed = false;
+				container.removeClass('movementMode');
+				reTilefy(); //to correct any anomaly during tile movement
+			}
+
         }
 
 
@@ -599,9 +643,9 @@ class BarickUtil {
     /*
     * custom Implementation of jQuery's addClass method
     */
-    public static removeClass(elemArr: NodeListOf<Element>, className: string) {
+    public static removeClass(elemArr: any, className: string) {
         for (let j in elemArr) {
-            let elem = elemArr[j];
+            let elem = elemArr[j] as Element;
             let classes: string[] = elem.className.split(' ');
             let newClassName: string = '';
             for (let i in classes) {
@@ -612,8 +656,7 @@ class BarickUtil {
             elem.className = newClassName;
         }
     }
-
-
+	
     /*
     * Native Event Trigger
     */
